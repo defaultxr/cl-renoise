@@ -1,7 +1,8 @@
 ;;;; package.lisp
 
-(defpackage #:renoise
+(defpackage #:cl-renoise
   (:use #:cl)
+  (:nicknames #:renoise)
   (:export
    #:*host*
    #:*port*
