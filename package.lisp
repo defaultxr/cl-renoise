@@ -1,7 +1,8 @@
 ;;;; package.lisp
 
 (defpackage #:cl-renoise
-  (:use #:cl)
+  (:use #:cl
+        #:mutility)
   (:nicknames #:renoise)
   (:export
    #:*host*

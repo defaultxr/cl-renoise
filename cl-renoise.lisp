@@ -229,6 +229,11 @@ end")))
            (format nil "~{~a, ~}" (mapcar 'make-osc-arg-table message))
            "}))")))
 
+(refun send-reply (target &rest message)
+  (concat "lisp_client:send(renoise.Osc.Message(\"" target "\", {"
+          (format nil "~{~a, ~}" (mapcar 'make-osc-arg-table message))
+          "}))"))
+
 (defun edit (&key pattern track line column (note nil note-provided-p) instrument)
   "Edit the currently-loaded song. Use PATTERN, TRACK, LINE, and COLUMN to specify the position in the song you want to edit, and NOTE and INSTRUMENT to change that cell. When a position value is not provided, the currently-selected position is assumed.
 

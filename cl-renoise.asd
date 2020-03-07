@@ -12,12 +12,13 @@
                (:file "utility")
                (:file "cl-renoise")))
 
-(asdf:defsystem #:renoise/objects
+(asdf:defsystem #:cl-renoise/objects
   :description "Lisp interface to Renoise with CLOS objects"
   :author "modula t. <defaultxr at gmail>"
   :license "MIT"
   :version "0.1"
   :serial t
-  :depends-on (#:cl-renoise
+  :depends-on (#:mutility
+               #:cl-renoise
                #:cl-flow)
   :components ((:file "objects")))
