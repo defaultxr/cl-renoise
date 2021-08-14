@@ -2,6 +2,7 @@
 
 (defpackage #:cl-renoise
   (:use #:cl
+        #:alexandria
         #:mutility)
   (:nicknames #:renoise)
   (:export

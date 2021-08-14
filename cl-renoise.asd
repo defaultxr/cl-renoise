@@ -10,9 +10,11 @@
   :bug-tracker "https://github.com/defaultxr/cl-renoise/issues"
   :mailto "defaultxr at gmail dot com"
   :source-control (:git "git@github.com:defaultxr/cl-renoise.git")
-  :serial t
-  :depends-on (#:usocket
+  :depends-on (#:alexandria
+               #:mutility
+               #:usocket
                #:osc)
+  :serial t
   :components ((:file "package")
                (:file "utility")
                (:file "cl-renoise")))
@@ -22,8 +24,7 @@
   :author "modula t."
   :license "MIT"
   :version "0.1"
-  :serial t
-  :depends-on (#:mutility
-               #:cl-renoise
+  :depends-on (#:cl-renoise
                #:cl-flow)
+  :serial t
   :components ((:file "objects")))

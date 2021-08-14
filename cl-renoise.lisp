@@ -16,9 +16,6 @@
 (defvar *receive-port* 8008
   "The port to listen on for OSC messages from Renoise.")
 
-(defvar *in-renoise-command* nil
-  "Whether or not we are currently inside of a `refun' function.")
-
 (defun send (&rest message)
   "Send an OSC message to Renoise at the host and port set in `*host*' and `*port*'."
   (let ((s (usocket:socket-connect *host* *port* :protocol :datagram :element-type '(unsigned-byte 8)))
@@ -33,27 +30,29 @@
 
 (defun read-until-double-newline (&optional (stream *standard-input*))
   "Read STREAM until the next double newline, then return the string."
-  (string-right-trim
-   (list #\newline)
-   (apply 'concatenate 'string
-          (loop :for line = (read-line stream)
-             :if (string= "" line)
-             :do (loop-finish)
-             :else
-             :collect (concatenate 'string line (string #\newline))))))
+  (when-let ((strings (loop :for line := (read-line stream nil nil)
+                            :if (emptyp line)
+                              :do (loop-finish)
+                            :if (null line)
+                              :return nil
+                            :else
+                              :collect line)))
+    (string-right-trim
+     (list #\newline)
+     (format nil "~{~a~%~}" strings))))
 
 (defun repl ()
-  "A very basic REPL for sending Lua code to Renoise. Separate statements with two newlines in a row. End the REPL with ,q and then two newlines."
-  (loop :for code = (progn
-                      ;; (fresh-line)
-                      (format t "lua> ")
-                      (read-until-double-newline))
-     :if (string= ",q" code)
-     :do (loop-finish)
-     :else
-     :do (evaluate code)))
+  "A very basic REPL for sending Lua code to Renoise. Separate statements with two newlines in a row. End the REPL with #q and then two newlines, or EOF."
+  (labels ((repl-read ()
+             (let ((code (progn
+                           (format t "~&lua> ")
+                           (read-until-double-newline))))
+               (unless (or (null code) (string= "#q" code))
+                 (evaluate code)
+                 (repl-read)))))
+    (repl-read)))
 
-(defmacro refun.old (name lambda-list &body body)
+(defmacro refun (name lambda-list &body body)
   "`defun', but for Renoise, hence \"refun\". A function defined with this macro should return a Lua string which can be sent to Renoise. This macro will define two functions: NAME, which actually sends the Lua string to Renoise, and NAME.lua, which just returns the Lua code."
   (let* ((doc (when (stringp (car body))
                 (car body)))
@@ -61,26 +60,12 @@
                    (cdr body)
                    body)))
     `(progn
-       (defun ,(intern (concat (symbol-name name) ".LUA") :renoise) ,lambda-list
+       (defun ,(intern (concat (symbol-name name) '.lua) :renoise) ,lambda-list
          ,doc
          ,@body)
        (defun ,name ,lambda-list
          ,doc
          (evaluate ,@body)))))
-
-(defmacro refun (name lambda-list &body body)
-  "`defun', but for Renoise, hence \"refun\". A function defined with this macro should return a Lua string which can be sent to Renoise. This macro will define two functions: NAME, which actually sends the Lua string to Renoise, and NAME.lua, which just returns the Lua code."
-  `(defun ,name ,lambda-list
-     (funcall
-      (if *in-renoise-command*
-          'identity
-          'evaluate)
-      (let ((*in-renoise-command* t))
-        ,@body))))
-
-;; (defun warning-dialog (string)
-;;   "Make a warning dialog box in Renoise."
-;;   (evaluate (concat "renoise.app():show_warning((\"" (escape-string string) "\"))")))
 
 (refun warning-dialog (string)
   "Make a warning dialog box in Renoise."
