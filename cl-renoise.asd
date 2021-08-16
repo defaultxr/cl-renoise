@@ -30,3 +30,17 @@
   :pathname "src/"
   :serial t
   :components ((:file "objects")))
+
+(asdf:defsystem #:cl-renoise/xrns
+  :description "Lisp library to read and write Renoise project files"
+  :author "modula t."
+  :license "MIT"
+  :version "0.1"
+  :depends-on (#:cl-renoise
+               #:zip
+               #:babel
+               #:xmls
+               #:parse-float)
+  :pathname "src/"
+  :serial t
+  :components ((:file "xrns")))
