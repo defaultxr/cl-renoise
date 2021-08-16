@@ -14,6 +14,7 @@
                #:mutility
                #:usocket
                #:osc)
+  :pathname "src/"
   :serial t
   :components ((:file "package")
                (:file "utility")
@@ -26,5 +27,6 @@
   :version "0.1"
   :depends-on (#:cl-renoise
                #:cl-flow)
+  :pathname "src/"
   :serial t
   :components ((:file "objects")))
