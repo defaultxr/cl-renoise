@@ -4,13 +4,8 @@
 
 ;;; helpers
 
-(defun string-upto (string limit)
-  (if (= limit (length-upto string limit))
-      (subseq string 0 limit)
-      string))
 
 (defun xml-value (xml &rest path)
-  ;; (format t "~&~s; ~s~%" path (string-upto (prin1-to-string xml) 25))
   (unless path
     (return-from xml-value xml))
   (let ((item (car path))
