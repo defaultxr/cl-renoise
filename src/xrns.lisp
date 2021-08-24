@@ -32,13 +32,15 @@
                 (return-from xml-value (values-list vals)))))))))))
 
 (defmacro define-project-datum-reader (name result-type &body xml-path)
-  `(defun ,name (project)
-     (let ((res (xml-value (project-xml project) "RenoiseSong" ,@xml-path)))
-       ,(ecase result-type
-          (integer `(parse-integer res))
-          (float `(parse-float:parse-float res))
-          (boolean `(parse-boolean res))
-          ((string t) 'res)))))
+  `(progn
+     (defun ,name (project)
+       (let ((res (xml-value (project-xml project) "RenoiseSong" ,@xml-path)))
+         ,(ecase result-type
+            (integer `(parse-integer res))
+            (float `(parse-float:parse-float res))
+            (boolean `(parse-boolean res))
+            ((string t) 'res))))
+     (export ',name)))
 
 ;;; project
 
@@ -300,3 +302,11 @@ See also: `project-xml'"
           (remove-if-not (fn (eql 0 (search "SampleData/" _ :test #'string=)))
                          (hash-table-keys (zip:zipfile-entries (slot-value project 'zipfile))))))
 
+;;; exports
+
+(export '(project open-project project-raw-xml project-xml parsed-xml name shuffle-amounts
+          instrument instrument-xml instrument-elt instruments instrument-name
+          pattern pattern-xml patterns-elt patterns pattern-length pattern-tracks
+          pattern-track pattern-track-xml pattern-track-project pattern-tracks-elt pattern-track-lines
+          pattern-sequence
+          project-sample-names))
