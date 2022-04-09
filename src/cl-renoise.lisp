@@ -277,7 +277,7 @@ See also: `cell'."
   (evaluate (concat ""))
   (error "This function isn't written yet, sorry."))
 
-(defparameter *reply-handlers* (make-hash-table :test 'equal)
+(defvar *reply-handlers* (make-hash-table :test 'equal)
   "Hash table mapping OSC messages to their handlers.")
 
 ;; (add-reply-handler t (lambda (&rest msg)
