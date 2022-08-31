@@ -1,4 +1,4 @@
-;;;; package.lisp
+;;;; package.lisp - cl-renoise package definition.
 
 (defpackage #:cl-renoise
   (:use #:cl

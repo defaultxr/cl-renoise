@@ -1,9 +1,8 @@
+;;;; xrns.lisp - support for reading and writing Renoise project files.
+
 (in-package #:cl-renoise)
 
-;;;; xrns.lisp - support for reading and writing renoise project files
-
 ;;; helpers
-
 
 (defun xml-value (xml &rest path)
   (unless path
@@ -240,7 +239,6 @@ See also: `project-xml'"
   "Get a list of defined patterns in PROJECT."
   (loop :for xml :in (xml-value (project-xml project) "RenoiseSong" "PatternPool" "Patterns")
         :for index :from 0
-        :do (print index)
         :collect (make-pattern project xml index)))
 
 (defun pattern-length (pattern)

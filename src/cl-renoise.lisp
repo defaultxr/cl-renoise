@@ -1,9 +1,14 @@
-;;;; renoise.lisp
+;;;; cl-renoise.lisp - basic functionality for interacting with Renoise.
 ;; NOTE: Renoise 3.1.1 uses Lua 5.1.
 ;; https://files.renoise.com/xrnx/documentation/Renoise.Song.API.lua.html
 ;; https://github.com/renoise/xrnx
 ;; https://forum.renoise.com/t/inserting-notes-into-a-pattern/49753/4
 ;; https://tutorials.renoise.com/wiki/Open_Sound_Control
+;; NOTE: Renoise seems to ignore OSC timetags, thus it's not possible to schedule note on/off accurately
+;; * prior art:
+;; - https://github.com/triss/sc-renoise
+;; - http://forum.renoise.com/index.php/topic/37557-generative-music-using-supercollider-renoise/
+;; * https://codeberg.org/gsou/LCL - Lua Common Lisp. An implementation of Common Lisp targeting Lua.
 
 (in-package #:cl-renoise)
 
@@ -33,13 +38,12 @@
   (when-let ((strings (loop :for line := (read-line stream nil nil)
                             :if (emptyp line)
                               :do (loop-finish)
-                            :if (null line)
-                              :return nil
+                            :if line
+                              :collect line
                             :else
-                              :collect line)))
-    (string-right-trim
-     (list #\newline)
-     (format nil "~{~a~%~}" strings))))
+                              :return nil)))
+    (string-right-trim (list #\newline)
+                       (format nil "~{~a~%~}" strings))))
 
 (defun repl ()
   "A very basic REPL for sending Lua code to Renoise. Separate statements with two newlines in a row. End the REPL with #q and then two newlines, or EOF."
