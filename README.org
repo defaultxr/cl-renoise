@@ -1,7 +1,7 @@
 #+TITLE: cl-renoise
 #+DESCRIPTION: Lisp library to interface with Renoise
 
-This is a Common Lisp library to interface with [[https://www.renoise.com/][Renoise]].
+This is a Common Lisp library to interface with [[https://www.renoise.com/][Renoise]]. Currently in very early stages of development; not much functionality is written yet.
 
 * Setup
 
@@ -14,47 +14,47 @@ Make sure "Protocol" is set to "Udp".
 #+BEGIN_SRC lisp
 (ql:quickload :cl-renoise)
 
-(setf renoise:*host* #(192 168 0 24)) ;; If Renoise is running on 192.168.0.24. If it's running on the same computer as Lisp, skip this step.
+(setf renoise:*host* #(192 168 0 24)) ; If Renoise is running on 192.168.0.24. If it's running on the same computer as Lisp, skip this step.
 
-(setf renoise:*port* 8000) ;; Not needed if you use the default port of 8000.
+(setf renoise:*port* 8000) ; Not needed if you use the default port of 8000.
 #+END_SRC
 
 3. You can now send Lua code to Renoise to be evaluated:
 
 #+BEGIN_SRC lisp
-(renoise:evaluate "renoise.app():show_warning((\"Hello from Lisp!\"))") ;; Send Lua code to Renoise.
+(renoise:evaluate "renoise.app():show_warning((\"Hello from Lisp!\"))") ; Send Lua code to Renoise.
 
-(renoise:warning-dialog "Hello again :^)") ;; Show a warning, as above, but more conveniently.
+(renoise:warning-dialog "Hello again :^)") ; Show a warning, as above, but more conveniently.
 #+END_SRC
 
 4. You can also edit the song, start/stop notes, and control the transport:
 
 #+BEGIN_SRC lisp
-(renoise:edit :pattern 0 :track 1 :line 0 :column 0 :note 70) ;; Set the first cell to be MIDI note 70.
+(renoise:edit :pattern 0 :track 1 :line 0 :column 0 :note 70) ; Set the first cell to be MIDI note 70.
 
-(renoise:note-on 48) ;; Start playing the current instrument.
+(renoise:note-on 48) ; Start playing the current instrument.
 
-(renoise:note-off 48) ;; Stop playing it.
+(renoise:note-off 48) ; Stop playing it.
 
-(renoise:start) ;; Start playing the song.
+(renoise:start) ; Start playing the song.
 
-(renoise:stop) ;; Stop playing it.
+(renoise:stop) ; Stop playing it.
 #+END_SRC
 
 5. If you want to be able to receive OSC messages from Renoise, run ~initialize-osc-replier~ to set it up, then use ~add-reply-handler~ and ~remove-reply-handler~ to delegate OSC messages to functions.
 
 #+BEGIN_SRC lisp
-(renoise:initialize-osc-replier) ;; Allow Renoise to send OSC to Lisp.
+(renoise:initialize-osc-replier) ; Allow Renoise to send OSC to Lisp.
 
-(ql:quickload :bordeaux-threads) ;; Load Lisp's de facto threading library.
+(ql:quickload :bordeaux-threads) ; Load Lisp's de facto threading library.
 
-(bt:make-thread 'renoise:receive :name "Renoise receiver thread") ;; Make an OSC receiver thread to catch incoming messages.
+(bt:make-thread 'renoise:receive :name "Renoise receiver thread") ; Make an OSC receiver thread to catch incoming messages.
 
-(renoise:add-reply-handler t (lambda (&rest msg) (format t "~s~%" msg))) ;; Add a catch-all reply handler that will be run when no other handler matches the message.
+(renoise:add-reply-handler t (lambda (&rest msg) (format t "~s~%" msg))) ; Add a catch-all reply handler that will be run when no other handler matches the message.
 
-(renoise:send-reply "/foobar" 99 23.0) ;; Make Renoise send an OSC message to the Lisp process.
+(renoise:send-reply "/foobar" 99 23.0) ; Make Renoise send an OSC message to the Lisp process.
 
-(renoise:add-reply-handler "/blah" (lambda (param) (format t "BLAH BLAH BLAH ~s~%" param))) ;; Set an OSC handler for /blah messages.
+(renoise:add-reply-handler "/blah" (lambda (param) (format t "BLAH BLAH BLAH ~s~%" param))) ; Set an OSC handler for /blah messages.
 
-(renoise:send-reply "/blah" "Howdy!") ;; Make Renoise send an OSC message to the Lisp process (which will be handled by the /blah handler).
+(renoise:send-reply "/blah" "Howdy!") ; Make Renoise send an OSC message to the Lisp process (which will be handled by the /blah handler).
 #+END_SRC
