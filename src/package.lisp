@@ -13,7 +13,7 @@
    #:send
    #:evaluate
    #:warning-dialog
-   
+
    #:bpm
    #:start
    #:stop
@@ -26,7 +26,7 @@
    #:cell
    #:refresh
 
-   #:receive
+   #:receiver
    #:send-reply
    #:initialize-osc-replier
    #:add-reply-handler

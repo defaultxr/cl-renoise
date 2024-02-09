@@ -169,7 +169,7 @@ See also: `cell'."
     (when instrument
       (concat "note_col.instrument_value = " instrument ";")))))
 
-(defun receive ()
+(defun receiver ()
   "Loop to receive OSC replies from Renoise and dispatch them to their proper handlers as defined by `add-reply-handler'."
   (let ((s (usocket:socket-connect nil nil
                                    :local-port *receive-port*
