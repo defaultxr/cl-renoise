@@ -4,7 +4,9 @@
 
 (defun escape-string (string)
   "Escape STRING's double quotes."
-  (apply #'concatenate 'string
-         (map 'list (lambda (c)
-                      (if (char= #\" c) "\\\"" c))
-              string)))
+  (loop :for char :across string
+        :if (char= #\" char)
+          :append (list #\BACKSLASH #\QUOTATION_MARK) :into res
+        :else
+          :collect char :into res
+        :finally (return (coerce res 'string))))
