@@ -1,13 +1,13 @@
 ;;;; cl-renoise.lisp - basic functionality for interacting with Renoise.
-;; NOTE: Renoise 3.1.1 uses Lua 5.1.
-;; https://files.renoise.com/xrnx/documentation/Renoise.Song.API.lua.html
-;; https://github.com/renoise/xrnx
-;; https://forum.renoise.com/t/inserting-notes-into-a-pattern/49753/4
-;; https://tutorials.renoise.com/wiki/Open_Sound_Control
-;; NOTE: Renoise seems to ignore OSC timetags, thus it's not possible to schedule note on/off accurately
-;; * prior art:
-;; - https://github.com/triss/sc-renoise
-;; - http://forum.renoise.com/index.php/topic/37557-generative-music-using-supercollider-renoise/
+
+;; NOTES:
+;; - Renoise 3.1.1 uses Lua 5.1.
+;; - Renoise seems to ignore OSC timetags, thus it's not possible to schedule note on/off accurately
+;; * Renoise scripting and OSC docs:
+;; - https://files.renoise.com/xrnx/documentation/Renoise.Song.API.lua.html
+;; - https://github.com/renoise/xrnx
+;; - https://forum.renoise.com/t/inserting-notes-into-a-pattern/49753/4
+;; - https://tutorials.renoise.com/wiki/Open_Sound_Control
 ;; * https://codeberg.org/gsou/LCL - Lua Common Lisp. An implementation of Common Lisp targeting Lua.
 
 (in-package #:cl-renoise)
