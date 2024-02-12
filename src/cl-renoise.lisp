@@ -12,22 +12,30 @@
 
 (in-package #:cl-renoise)
 
-(defvar *host* #(127 0 0 1)
+(defvar *renoise-host* #(127 0 0 1)
   "The host IP that Renoise is running on (provided as a four-component vector).")
 
-(defvar *port* 8000
+(defvar *renoise-port* 8000
   "The port that Renoise is listening for OSC messages on.")
 
-(defvar *receive-port* 8008
+(defvar *renoise-receive-port* 8008
   "The port to listen on for OSC messages from Renoise.")
 
-(defun send (&rest message)
-  "Send an OSC message to Renoise at the host and port set in `*host*' and `*port*'."
-  (let ((s (usocket:socket-connect *host* *port* :protocol :datagram :element-type '(unsigned-byte 8)))
-        (b (apply 'osc:encode-message message)))
+(defun send-message (message &key (timetag :now) (host *renoise-host*) (port *renoise-port*))
+  (let ((socket (usocket:socket-connect host port :protocol :datagram :element-type '(unsigned-byte 8)))
+        ;; (bundle (apply 'osc:encode-message message))
+        (bundle (osc:encode-bundle message timetag)))
     (unwind-protect
-         (usocket:socket-send s b (length b))
-      (when s (usocket:socket-close s)))))
+         (usocket:socket-send socket
+                              (concatenate '(vector (unsigned-byte 8)) bundle)
+                              (length bundle))
+      (when socket (usocket:socket-close socket)))))
+
+(defun send (&rest message)
+  "Send an OSC message to Renoise at the host and port set in `*renoise-host*' and `*renoise-port*'.
+
+See also: `send-message'"
+  (send-message message :host *renoise-host* :port *renoise-port*))
 
 (defun evaluate (string)
   "Send Lua code STRING to Renoise for evaluation."
@@ -43,7 +51,7 @@
                             :else
                               :return nil)))
     (string-right-trim (list #\newline)
-                       (format nil "~{~a~%~}" strings))))
+                       (format nil "~{~A~%~}" strings))))
 
 (defun repl ()
   "A very basic REPL for sending Lua code to Renoise. Separate statements with two newlines in a row. End the REPL with #q and then two newlines, or EOF."
@@ -77,7 +85,7 @@
 
 (defun bpm ()
   "Get the BPM of the current song."
-  (error "Not done yet.") ;; FIX
+  (error "Not done yet.") ; FIX
   )
 
 (defun (setf bpm) (value)
@@ -142,7 +150,7 @@ See also: `cell'."
    (concat
     "local lisp_edit = renoise.song():pattern("
     (if pattern
-        (1+ pattern) ;; lua indexes from 1, but renoise counts patterns from 0
+        (1+ pattern) ; lua indexes from 1, but renoise counts patterns from 0
         "renoise.song().selected_pattern_index")
     "):track("
     (if track
@@ -150,7 +158,7 @@ See also: `cell'."
         "renoise.song().selected_track_index")
     "):line("
     (if line
-        (1+ line) ;; lua indexes from 1, but renoise counts lines from 0
+        (1+ line) ; lua indexes from 1, but renoise counts lines from 0
         "renoise.song().selected_line_index")
     "):note_column("
     (if column
@@ -172,13 +180,13 @@ See also: `cell'."
 (defun receiver ()
   "Loop to receive OSC replies from Renoise and dispatch them to their proper handlers as defined by `add-reply-handler'."
   (let ((s (usocket:socket-connect nil nil
-                                   :local-port *receive-port*
-                                   :local-host *host*
+                                   :local-port *renoise-receive-port*
+                                   :local-host *renoise-host*
                                    :protocol :datagram
                                    :element-type '(unsigned-byte 8)))
         (buffer (make-sequence '(vector (unsigned-byte 8)) 1024)))
     (unwind-protect
-         (loop :do
+         (loop
            (usocket:socket-receive s buffer (length buffer))
            (let* ((decoded (osc:decode-bundle buffer))
                   (handler (reply-handler-for (elt decoded 0))))
@@ -204,7 +212,7 @@ See also: `cell'."
   "Prepare Renoise to send replies back to Lisp."
   (evaluate
    (concat
-    "lisp_client, socket_error = renoise.Socket.create_client(\"localhost\", " *receive-port*
+    "lisp_client, socket_error = renoise.Socket.create_client(\"localhost\", " *renoise-receive-port*
     ", renoise.Socket.PROTOCOL_UDP)
 
 if(socket_error) then
@@ -215,12 +223,12 @@ end")))
   "Make Renoise send a reply to Lisp."
   (evaluate
    (concat "lisp_client:send(renoise.Osc.Message(\"" target "\", {"
-           (format nil "~{~a, ~}" (mapcar 'make-osc-arg-table message))
+           (format nil "~{~A, ~}" (mapcar 'make-osc-arg-table message))
            "}))")))
 
 (refun send-reply (target &rest message)
   (concat "lisp_client:send(renoise.Osc.Message(\"" target "\", {"
-          (format nil "~{~a, ~}" (mapcar 'make-osc-arg-table message))
+          (format nil "~{~A, ~}" (mapcar 'make-osc-arg-table message))
           "}))"))
 
 (defun edit (&key pattern track line column (note nil note-provided-p) instrument)
@@ -283,9 +291,6 @@ See also: `cell'."
 
 (defvar *reply-handlers* (make-hash-table :test 'equal)
   "Hash table mapping OSC messages to their handlers.")
-
-;; (add-reply-handler t (lambda (&rest msg)
-;;                        (print msg)))
 
 (defun add-reply-handler (target function)
   "Add a reply handler for messages sent to TARGET. If TARGET is t, all messages without a more specific handler are sent to this function."

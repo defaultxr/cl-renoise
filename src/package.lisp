@@ -6,9 +6,9 @@
         #:mutility)
   (:nicknames #:renoise)
   (:export
-   #:*host*
-   #:*port*
-   #:*receive-port*
+   #:*renoise-host*
+   #:*renoise-port*
+   #:*renoise-receive-port*
 
    #:send
    #:evaluate
