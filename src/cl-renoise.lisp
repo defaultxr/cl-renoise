@@ -232,7 +232,7 @@ end")))
           "}))"))
 
 (defun edit (&key pattern track line column (note nil note-provided-p) instrument)
-  "Edit the currently-loaded song. Use PATTERN, TRACK, LINE, and COLUMN to specify the position in the song you want to edit, and NOTE and INSTRUMENT to change that cell. When a position value is not provided, the currently-selected position is assumed.
+  "Edit the currently-loaded song. Use PATTERN, TRACK, LINE, and COLUMN to specify the position in the song you want to edit, and NOTE and INSTRUMENT to change that cell. A position not provided defaults to the position of Renoise's cursor. Note that patterns, lines, and columns are 0-indexed, while tracks are 1-indexed.
 
 Examples:
 
@@ -246,42 +246,38 @@ Examples:
 ;; (edit :note nil)
 
 See also: `cell'."
-  (assert (typep pattern '(or integer null)) (pattern))
-  (assert (typep track '(or integer null)) (track))
-  (assert (typep line '(or integer null)) (line))
-  (assert (typep column '(or integer null)) (column))
-  (assert (typep note '(or (integer 0 127) symbol null)) (note))
-  (assert (typep instrument '(or (integer 0 127) null)) (instrument))
-  (evaluate
-   (concat
-    "local lisp_edit = renoise.song():pattern("
-    (if pattern
-        (1+ pattern) ;; lua indexes from 1, but renoise counts patterns from 0
-        "renoise.song().selected_pattern_index")
-    "):track("
-    (if track
-        track
-        "renoise.song().selected_track_index")
-    "):line("
-    (if line
-        (1+ line) ;; lua indexes from 1, but renoise counts lines from 0
-        "renoise.song().selected_line_index")
-    "):note_column("
-    (if column
-        (1+ column)
-        "renoise.song().selected_note_column_index")
-    ");"
-    (when note-provided-p
-      (concat "lisp_edit.note_value = "
-              (if (null note)
-                  121
-                  (if (and (symbolp note)
-                           (string= :off note))
-                      120
-                      note))
-              ";"))
-    (when instrument
-      (concat "lisp_edit.instrument_value = " instrument ";")))))
+  (check-type pattern (or (integer 0) null) "a positive integer denoting the pattern to edit")
+  (check-type track (or (integer 1) null) "a positive non-zero integer denoting the track to edit")
+  (check-type line (or (integer 0) null) "a positive integer denoting the line to edit")
+  (check-type column (or (integer 0) null) "a positive integer denoting the column to edit")
+  (check-type note (or (integer 0 127) (eql :off) null) "an integer from 0 to 127 denoting the note value, the symbol :off for note-off, or nil for a blank line")
+  (check-type instrument (or (integer 0 127) null) "an integer from 0 to 127 denoting the instrument number, or nil for no instrument")
+  (evaluate (concat
+             "local lisp_edit = renoise.song():pattern("
+             (if pattern
+                 (1+ pattern) ; lua indexes from 1, but renoise counts patterns from 0
+                 "renoise.song().selected_pattern_index")
+             "):track("
+             (or track
+                 "renoise.song().selected_track_index")
+             "):line("
+             (if line
+                 (1+ line) ; lua indexes from 1, but renoise counts lines from 0
+                 "renoise.song().selected_line_index")
+             "):note_column("
+             (if column
+                 (1+ column)
+                 "renoise.song().selected_note_column_index")
+             ");"
+             (when note-provided-p
+               (concat "lisp_edit.note_value = "
+                       (typecase note
+                         (null 121)
+                         ((eql :off) 120)
+                         (t note))
+                       ";"))
+             (when instrument
+               (concat "lisp_edit.instrument_value = " instrument ";")))))
 
 (defun get-cell-value (&key pattern track line column)
   "Get the value of the cell at the position provided, or the cell under the cursor if no position is provided."
